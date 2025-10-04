@@ -9,7 +9,7 @@
       "cache": true,
       "options": {
         "cwd": "packages/twenty-cli",
-        "commands": ["rimraf dist", "tsc"]
+        "commands": ["rimraf dist", "yarn tsc"]
       },
       "dependsOn": ["^after-build"]
     },
@@ -18,7 +18,7 @@
       "cache": true,
       "options": {
         "cwd": "packages/twenty-cli",
-        "commands": ["cp -R src/constants/base-application-project dist/constants"]
+        "commands": ["yarn tsc", "cp -R src/constants/base-application-project dist/constants"]
       },
       "dependsOn": ["after-build"]
     },

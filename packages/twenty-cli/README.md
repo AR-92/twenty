@@ -1,6 +1,6 @@
 # Why Twenty CLI?
 
-A command-line interface to easily scaffold, develop, and publish applications that extend Twenty CRM
+A comprehensive command-line interface to develop, build, test, deploy, and manage Twenty CRM applications and the entire project
 
 ## Installation
 
@@ -10,9 +10,107 @@ npm install -g twenty-cli
 
 ## Requirements
 - yarn >= 4.9.2
+- Node.js >= 24.5.0
+- Docker (for services and containerized development)
 - an `apiKey`. Go to `https://twenty.com/settings/api-webhooks` to generate one
 
-## Quick example project
+## Project Development Commands
+
+The CLI now supports complete project development workflows:
+
+### Project Setup and Dependencies
+```bash
+# Install all project dependencies
+twenty install
+
+# Clean install (removes node_modules first)
+twenty install --clean
+```
+
+### Development Mode
+```bash
+# Start development mode with all services
+twenty dev --services
+
+# Start development with only frontend
+twenty dev --front
+
+# Start development with only backend
+twenty dev --back
+
+# Start development without services (if already running)
+twenty dev
+```
+
+### Building the Project
+```bash
+# Build the entire project
+twenty build --all
+
+# Build only frontend
+twenty build --front
+
+# Build only backend
+twenty build --back
+
+# Build for production
+twenty build --prod
+
+# Build with statistics
+twenty build --stats
+```
+
+### Running Tests
+```bash
+# Run all tests
+twenty test --all
+
+# Run only unit tests
+twenty test --unit
+
+# Run only integration tests
+twenty test --integration
+
+# Run end-to-end tests
+twenty test --e2e
+
+# Run tests in watch mode
+twenty test --watch
+
+# Generate coverage report
+twenty test --coverage
+
+# Run tests in CI mode
+twenty test --ci
+```
+
+### Docker Management
+```bash
+# Start all required services using Docker
+twenty docker services --start
+
+# Stop all services
+twenty docker services --stop
+
+# Check service status
+twenty docker services --status
+
+# Run project in Docker
+twenty docker up
+
+# Stop project in Docker
+twenty docker down
+
+# Show service logs
+twenty docker --logs
+
+# Clean all Docker resources
+twenty docker --clean
+```
+
+## Application Development Commands
+
+For developing custom applications that extend Twenty CRM:
 
 ```bash
 # Authenticate using your apiKey (CLI will prompt for your <apiKey>)
