@@ -237,74 +237,102 @@ setup_env_files() {
     fi
 }
 
-# Initialize the database
+# Clean previous Docker containers and volumes
+clean_docker() {
+    log_info "Cleaning previous Docker containers and volumes..."
+    
+    # Stop and remove existing containers
+    if [ "$(docker ps -aq -f name=twenty_pg)" ]; then
+        docker stop twenty_pg > /dev/null 2>&1
+        docker rm twenty_pg > /dev/null 2>&1
+        log_info "Removed existing PostgreSQL container."
+    fi
+    
+    if [ "$(docker ps -aq -f name=twenty_redis)" ]; then
+        docker stop twenty_redis > /dev/null 2>&1
+        docker rm twenty_redis > /dev/null 2>&1
+        log_info "Removed existing Redis container."
+    fi
+    
+    # Remove Docker volumes if they exist
+    if [ "$(docker volume ls -q -f name=twenty_db_data)" ]; then
+        docker volume rm twenty_db_data > /dev/null 2>&1
+        log_info "Removed existing PostgreSQL volume."
+    fi
+    
+    # Clean up the Docker network if it exists
+    if docker network inspect twenty_network > /dev/null 2>&1; then
+        docker network rm twenty_network > /dev/null 2>&1
+        log_info "Removed existing Docker network."
+    fi
+    
+    log_success "Docker cleanup completed."
+}
+
+# Initialize the database with fresh data
 init_database() {
-    log_info "Initializing database..."
+    log_info "Initializing database with fresh data..."
     
     cd "$PROJECT_DIR"
     
-    # Run database initialization
+    # Run database initialization which includes migrations
     npx nx run twenty-server:database:init:prod
     
-    log_success "Database initialized."
+    log_success "Database initialized with fresh data."
 }
 
-# Check if a service is running on a port
-is_port_in_use() {
-    local port=$1
-    if command -v lsof &> /dev/null; then
-        lsof -Pi :$port -sTCP:LISTEN -t >/dev/null
-    elif command -v ss &> /dev/null; then
-        ss -tuln | grep -q ":$port "
-    elif command -v netstat &> /dev/null; then
-        netstat -tuln | grep -q ":$port "
-    else
-        # Fallback: try to connect to the port
-        timeout 1 bash -c "</dev/tcp/localhost/$port" 2>/dev/null
+# Seed the database with default development data
+seed_database() {
+    log_info "Seeding database with development data..."
+    
+    cd "$PROJECT_DIR"
+    
+    # Run workspace seeding to create default roles and essential data
+    npx nx command twenty-server workspace:seed:dev
+    
+    log_success "Database seeded with development data."
+}
+
+# Clean node_modules to ensure fresh dependencies
+clean_dependencies() {
+    log_info "Cleaning previous dependencies..."
+    
+    cd "$PROJECT_DIR"
+    
+    # Remove node_modules to ensure fresh install
+    if [ -d "node_modules" ]; then
+        rm -rf node_modules
+        log_info "Removed existing node_modules directory."
     fi
-}
-
-# Wait for a service to be available on a port
-wait_for_port() {
-    local port=$1
-    local timeout=${2:-30}
-    local count=0
     
-    log_info "Waiting for service on port $port (timeout: ${timeout}s)..."
-    
-    while [ $count -lt $timeout ]; do
-        if is_port_in_use $port; then
-            return 0
-        fi
-        sleep 1
-        ((count++))
-    done
-    
-    return 1
+    log_success "Dependency cleanup completed."
 }
 
 # Main function
 main() {
     echo
     log_info "==========================================="
-    log_info "TWENTY CRM DEVELOPMENT SETUP SCRIPT"
+    log_info "TWENTY CRM DEVELOPMENT SETUP SCRIPT (FRESH)"
     log_info "==========================================="
     echo
     
     check_prerequisites
+    clean_docker
+    clean_dependencies
     setup_docker_network
     start_postgres
     start_redis
     install_dependencies
     setup_env_files
     init_database
+    seed_database
     
     echo
     log_success "==========================================="
-    log_success "TWENTY CRM DEVELOPMENT SETUP COMPLETED"
+    log_success "TWENTY CRM DEVELOPMENT SETUP COMPLETED (FRESH)"
     log_success "==========================================="
     echo
-    log_info "Setup completed successfully!"
+    log_info "Setup completed successfully with fresh data!"
     log_info "To run the application, use: ./run_dev.sh"
     echo
 }
